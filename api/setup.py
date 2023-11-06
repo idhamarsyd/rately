@@ -22,7 +22,7 @@ setup(
     name='Rateky',
     version='1.0.0',
     author='idham',
-    description='An API for YouTube Review web.'
+    description='An API for YouTube Review web.',
     author_email='idhamrasyids@gmail.om',
     packages=find_packages(),
     install_requires=get_requirements('requirements.txt')

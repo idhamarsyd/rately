@@ -13,20 +13,28 @@ import Classification from "./pages/classification";
 import CommentData from "./pages/comment-data";
 import FilmData from "./pages/film-data";
 import Overview from "./pages/overview";
+import { store } from "./stores/store";
+import { Provider } from "react-redux";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
     errorElement: <Error />,
+    // children: [
+    //   {
+    //     path: "movie/:movieId",
+    //     element: <Movie />,
+    //   },
+    // ],
+  },
+  {
+    path: "movie/:movieId",
+    element: <Movie />,
   },
   {
     path: "login",
     element: <Login />,
-  },
-  {
-    path: "movie",
-    element: <Movie />,
   },
   {
     path: "dashboard",
@@ -57,7 +65,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
     {/* <App /> */}
   </React.StrictMode>
 );

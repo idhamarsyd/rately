@@ -35,52 +35,9 @@ interface LoginForm extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function ProfileForm({ setToken }: LoginForm) {
-  //   interface LoginForm {
-  //     username: string;
-  //     password: string;
-  //   }
-
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
   const navigate = useNavigate();
-  //   const [loginForm, setLoginForm] = React.useState<LoginForm>({
-  //     username: "",
-  //     password: "",
-  //   });
-
-  //   function Login(event: React.SyntheticEvent) {
-  //     axios({
-  //       method: "POST",
-  //       url: "/token",
-  //       data: {
-  //         email: loginForm.username,
-  //         password: loginForm.password,
-  //       },
-  //     })
-  //       .then((response) => {
-  //         setToken(response.data.access_token);
-  //       })
-  //       .catch((error) => {
-  //         if (error.response) {
-  //           console.log(error.response);
-  //           console.log(error.response.status);
-  //           console.log(error.response.headers);
-  //         }
-  //       });
-
-  //     setLoginForm({
-  //       username: "",
-  //       password: "",
-  //     });
-
-  //     event.preventDefault();
-  //   }
-
-  //   function handleChange(event: React.SyntheticEvent,) {
-  //     const {value, name} = event.target
-  //     setLoginForm(prevNote => ({
-  //         ...prevNote, [name]: value})
-  //     )}
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

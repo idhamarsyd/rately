@@ -24,12 +24,22 @@ import {
 } from "../ui/table";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import { MovieForm } from "../ui/movie-form";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -69,7 +79,24 @@ export function DataTable<TData, TValue>({
   return (
     <div>
       <div className="flex items-center py-3 justify-between">
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row gap-4 dark">
+          <Sheet>
+            <Button variant="default" asChild>
+              <SheetTrigger>Tambah</SheetTrigger>
+            </Button>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Tambah Data Film</SheetTitle>
+                <SheetDescription>
+                  Masukkan informasi film yang ingin ditambahkan.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-8 text-secondary-foreground">
+                <MovieForm />
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <Input
             placeholder="Cari film..."
             value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -105,10 +132,10 @@ export function DataTable<TData, TValue>({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="text-sm text-muted-foreground">
+        {/* <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
+        </div> */}
       </div>
       <div className="rounded-md border">
         <Table>

@@ -1,5 +1,5 @@
 // import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Accordion,
@@ -9,8 +9,8 @@ import {
 } from "../components/ui/accordion";
 import { Button, buttonVariants } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Skeleton } from "../components/ui/skeleton";
 import { AlbumArtwork } from "../components/ui/movie-artwork";
-import { films } from "../data/films";
 import { playlists } from "../data/playlists";
 import {
   Tabs,
@@ -21,35 +21,43 @@ import {
 import { Outlet, Link } from "react-router-dom";
 import { useToken } from "../hooks/useToken";
 import { LayoutDashboard } from "lucide-react";
+import { useAppSelector, useAppDispatch } from "../stores/hooks";
+import {
+  selectMovies,
+  fetchMovies,
+  fetchMovieDetail,
+  searchMovie,
+} from "../stores/moviesSlice";
 
 function Home() {
-  interface UserData {
-    profile_name: string;
-    about_me: string;
-  }
-  const [profileData, setProfileData] = useState<UserData | null>(null);
   const { token } = useToken();
 
-  function getData() {
-    axios({
-      method: "GET",
-      url: "/profile",
-    })
-      .then((response) => {
-        const res = response.data;
-        setProfileData({
-          profile_name: res.name,
-          about_me: res.about,
-        });
-      })
-      .catch((error) => {
-        if (error.response) {
-          console.log(error.response);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        }
-      });
-  }
+  const movies = useAppSelector(selectMovies);
+  const isLoading = useAppSelector((state) => state.movies.isLoading);
+  const dispatch = useAppDispatch();
+  const [query, setQuery] = useState("");
+  const [searchStatus, setSearchStatus] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchMovies());
+  }, []);
+
+  const inputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  };
+
+  const enterHandler = () => {
+    if (query !== "") {
+      dispatch(searchMovie(query));
+      setSearchStatus(true);
+    }
+  };
+
+  const resetSearch = () => {
+    setQuery("");
+    dispatch(fetchMovies());
+    setSearchStatus(false);
+  };
 
   return (
     <div className="bg-background dark min-h-screen flex flex-col gap-4 items-center px-12 pb-12">
@@ -89,27 +97,67 @@ function Home() {
         </p>
       </div>
       {/* Search bar */}
-      <div className="flex w-full max-w-sm items-center space-x-2 mt-2">
+      <div className="flex w-full max-w-sm items-center space-x-2 mt-2 text-secondary-foreground">
         <Input
           type="text"
           placeholder="Judul film"
           className="text-secondary-foreground"
+          onChange={(e) => inputHandler(e)}
+          value={query}
         />
-        <Button type="submit" variant="secondary">
+        <Button
+          type="submit"
+          variant="secondary"
+          onClick={() => enterHandler()}
+        >
           Cari
         </Button>
+        {searchStatus ? (
+          <Button type="submit" variant="ghost" onClick={() => resetSearch()}>
+            Reset
+          </Button>
+        ) : (
+          <></>
+        )}
       </div>
       {/* Gallery */}
-      <Tabs defaultValue="all" className="flex flex-col items-center mt-8">
-        <TabsList className="w-fit">
-          <TabsTrigger value="all">Semua</TabsTrigger>
-          <TabsTrigger value="positive">Paling Disukai</TabsTrigger>
-          <TabsTrigger value="recent">Terbaru</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-          <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-            {films.map((film) => (
-              <Link to={`movie`}>
+      {isLoading ? (
+        // <h1 className="text-secondary-foreground">Getting the movies...</h1>
+        <div className="flex flex-row items-center mt-8 gap-4">
+          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+        </div>
+      ) : (
+        <Tabs defaultValue="all" className="flex flex-col items-center mt-8">
+          <TabsList className="w-fit">
+            <TabsTrigger value="all">Semua</TabsTrigger>
+            <TabsTrigger value="positive">Paling Disukai</TabsTrigger>
+            <TabsTrigger value="recent">Terbaru</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all">
+            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+              {movies.map((film) => (
+                <Link
+                  to={`movie/${film.id}`}
+                  onClick={() => dispatch(fetchMovieDetail(film.id))}
+                >
+                  <AlbumArtwork
+                    key={film.title}
+                    album={film}
+                    className="w-[250px]"
+                    aspectRatio="portrait"
+                    width={250}
+                    height={330}
+                  />
+                </Link>
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="positive">
+            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+              {movies.map((film) => (
                 <AlbumArtwork
                   key={film.title}
                   album={film}
@@ -118,39 +166,26 @@ function Home() {
                   width={250}
                   height={330}
                 />
-              </Link>
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="positive">
-          <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-            {films.map((film) => (
-              <AlbumArtwork
-                key={film.title}
-                album={film}
-                className="w-[250px]"
-                aspectRatio="portrait"
-                width={250}
-                height={330}
-              />
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="recent">
-          <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-            {films.map((film) => (
-              <AlbumArtwork
-                key={film.title}
-                album={film}
-                className="w-[250px]"
-                aspectRatio="portrait"
-                width={250}
-                height={330}
-              />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="recent">
+            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+              {movies.map((film) => (
+                <AlbumArtwork
+                  key={film.title}
+                  album={film}
+                  className="w-[250px]"
+                  aspectRatio="portrait"
+                  width={250}
+                  height={330}
+                />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
+
       {/* FAQ & Footer */}
       <div className="w-full flex flex-col gap-6 items-center">
         <div className="flex flex-col gap-4 items-center max-w-[400px] w-full">
