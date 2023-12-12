@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 import axios from "axios";
 import { Icons } from "./icons";
@@ -24,6 +23,7 @@ import { toast } from "./use-toast";
 import { ScrollArea } from "./scroll-area";
 import { useAppSelector, useAppDispatch } from "../../stores/hooks";
 import { fetchMovies } from "../../stores/moviesSlice";
+import { useToken } from "../../hooks/useToken";
 
 const formSchema = z.object({
   title: z.string().min(1, {
@@ -35,19 +35,17 @@ const formSchema = z.object({
   genre: z.string().min(4, {
     message: "Genre must be at least 4 characters.",
   }),
-  description: z.string().min(50, {
-    message: "Description must be at least 50 characters.",
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters.",
   }),
 });
 
 export function MovieForm() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
-  const dispatch = useAppDispatch();
+  const { saveToken, token } = useToken();
 
-  // useEffect(() => {
-  //   dispatch(fetchMovies());
-  // }, []);
+  const dispatch = useAppDispatch();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,6 +64,9 @@ export function MovieForm() {
     axios({
       method: "POST",
       url: "/add_movie",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       data: {
         title: data.title,
         cover: data.cover,
@@ -81,13 +82,7 @@ export function MovieForm() {
           setIsLoading(false);
           toast({
             title: "Berhasil menambahkan data film",
-            description: (
-              <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                <code className="text-white">
-                  Film {data.title} telah ditambahkan
-                </code>
-              </pre>
-            ),
+            description: `Film ${data.title} telah ditambahkan.`,
           });
           form.reset();
           dispatch(fetchMovies());
@@ -104,11 +99,7 @@ export function MovieForm() {
             setIsLoading(false);
             toast({
               title: "Gagal menambahkan data film",
-              description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                  <code className="text-white">{error.response.data.msg}</code>
-                </pre>
-              ),
+              description: error.response.data.msg,
             });
           }, 2000);
         }

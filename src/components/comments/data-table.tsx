@@ -30,6 +30,15 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import { CommentForm } from "../ui/comment-form";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -70,11 +79,27 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-3 justify-between">
         <div className="flex flex-row gap-4">
+          <Sheet>
+            <Button variant="default" asChild>
+              <SheetTrigger>Tambah</SheetTrigger>
+            </Button>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Tambah Data Komentar</SheetTitle>
+                <SheetDescription>
+                  Masukkan informasi komentar yang ingin ditambahkan.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-8 text-secondary-foreground">
+                <CommentForm />
+              </div>
+            </SheetContent>
+          </Sheet>
           <Input
             placeholder="Cari film..."
-            value={(table.getColumn("film")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("movie")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("film")?.setFilterValue(event.target.value)
+              table.getColumn("movie")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />

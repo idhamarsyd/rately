@@ -24,6 +24,7 @@ import { toast } from "./use-toast";
 import { ScrollArea } from "./scroll-area";
 import { useAppSelector, useAppDispatch } from "../../stores/hooks";
 import { fetchMovies } from "../../stores/moviesSlice";
+import { useToken } from "../../hooks/useToken";
 
 const formSchema = z.object({
   title: z.string().min(1, {
@@ -35,8 +36,8 @@ const formSchema = z.object({
   genre: z.string().min(4, {
     message: "Genre must be at least 4 characters.",
   }),
-  description: z.string().min(50, {
-    message: "Description must be at least 50 characters.",
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters.",
   }),
 });
 
@@ -61,6 +62,8 @@ export function UpdateMovieForm({
 }: Film) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
+  const { saveToken, token } = useToken();
+
   const dispatch = useAppDispatch();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -80,6 +83,9 @@ export function UpdateMovieForm({
     axios({
       method: "PUT",
       url: `/update_movie/${id}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       data: {
         title: data.title,
         cover: data.cover,

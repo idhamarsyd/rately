@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -17,8 +17,68 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
+import { useAppDispatch, useAppSelector } from "../stores/hooks";
+import { fetchMovies } from "../stores/moviesSlice";
+import {
+  fetchClassifications,
+  fetchComments,
+  fetchDataTraining,
+  fetchMetrics,
+  selectMetrics,
+} from "../stores/commentsSlice";
+import { Item } from "@radix-ui/react-accordion";
 
 function Overview() {
+  const latestMovie = useAppSelector((state) =>
+    state.movies.data.length > 0
+      ? state.movies.data[state.movies.data.length - 1]
+      : null
+  );
+  const totalMovies = useAppSelector((state) => state.movies.data.length);
+  const totalComments = useAppSelector((state) => state.comments.data.length);
+  const metrics = useAppSelector(selectMetrics);
+  const totalPositive = useAppSelector((state) => {
+    const classificationCount = state.comments.classification.filter(
+      (item) => item.classification === "POSITIVE"
+    ).length;
+
+    const dataTrainingCount = state.comments.dataTraining.filter(
+      (item) => item.label === "POSITIVE"
+    ).length;
+
+    return classificationCount + dataTrainingCount;
+  });
+  const totalNeutral = useAppSelector((state) => {
+    const classificationCount = state.comments.classification.filter(
+      (item) => item.classification === "NEUTRAL"
+    ).length;
+
+    const dataTrainingCount = state.comments.dataTraining.filter(
+      (item) => item.label === "NEUTRAL"
+    ).length;
+
+    return classificationCount + dataTrainingCount;
+  });
+  const totalNegative = useAppSelector((state) => {
+    const classificationCount = state.comments.classification.filter(
+      (item) => item.classification === "NEGATIVE"
+    ).length;
+
+    const dataTrainingCount = state.comments.dataTraining.filter(
+      (item) => item.label === "NEGATIVE"
+    ).length;
+
+    return classificationCount + dataTrainingCount;
+  });
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMovies());
+    dispatch(fetchComments());
+    dispatch(fetchClassifications());
+    dispatch(fetchDataTraining());
+    dispatch(fetchMetrics());
+  }, []);
   return (
     <div className="min-h-screen flex flex-col gap-5 mb-8">
       <img
@@ -58,9 +118,9 @@ function Overview() {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">127</div>
+              <div className="text-2xl font-bold">{totalMovies}</div>
               <p className="text-xs text-muted-foreground">
-                Terakhir ditambahkan pada 09/10/2023.
+                Terakhir ditambahkan: {latestMovie?.title}
               </p>
             </CardContent>
           </Card>
@@ -94,9 +154,10 @@ function Overview() {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1.200</div>
+              <div className="text-2xl font-bold">{totalComments}</div>
               <p className="text-xs text-muted-foreground">
-                700 positif, 500 negatif.
+                {totalPositive} positif, {totalNeutral} netral, {totalNegative}{" "}
+                negatif.
               </p>
             </CardContent>
           </Card>
@@ -128,9 +189,9 @@ function Overview() {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">88%</div>
+              <div className="text-2xl font-bold">{metrics?.accuracy}</div>
               <p className="text-xs text-muted-foreground">
-                800 dari 1200 data sesuai diklasifikasikan.
+                Precision: {metrics?.precision} | Recall: {metrics?.recall}
               </p>
             </CardContent>
           </Card>
@@ -143,7 +204,7 @@ function Overview() {
           </Button>
         </div>
       </div>
-      <div className="mx-4 gap-3 flex flex-col mt-4 text-secondary-foreground">
+      {/* <div className="mx-4 gap-3 flex flex-col mt-4 text-secondary-foreground">
         <Table>
           <TableCaption>Urutan film yang paling disukai.</TableCaption>
           <TableHeader>
@@ -169,7 +230,7 @@ function Overview() {
             </TableRow>
           </TableBody>
         </Table>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -27,19 +27,22 @@ import {
   fetchMovies,
   fetchMovieDetail,
   searchMovie,
+  fetchClassifiedMovies,
+  selectClassifiedMovies,
 } from "../stores/moviesSlice";
 
 function Home() {
   const { token } = useToken();
 
-  const movies = useAppSelector(selectMovies);
+  const movies = useAppSelector(selectClassifiedMovies);
   const isLoading = useAppSelector((state) => state.movies.isLoading);
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState("");
   const [searchStatus, setSearchStatus] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchMovies());
+    dispatch(fetchClassifiedMovies());
+    console.log(movies);
   }, []);
 
   const inputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +58,7 @@ function Home() {
 
   const resetSearch = () => {
     setQuery("");
-    dispatch(fetchMovies());
+    dispatch(fetchClassifiedMovies());
     setSearchStatus(false);
   };
 
@@ -93,7 +96,8 @@ function Home() {
           Pendapat mereka yang sudah nonton
         </h1>
         <p className="leading-7 text-muted-foreground text-center">
-          Lihat seberapa banyak komentar positif dan negatif dari sebuah film.
+          Lihat seberapa banyak komentar positif, netral, dan negatif dari
+          sebuah film.
         </p>
       </div>
       {/* Search bar */}
@@ -130,60 +134,38 @@ function Home() {
           <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
         </div>
       ) : (
-        <Tabs defaultValue="all" className="flex flex-col items-center mt-8">
-          <TabsList className="w-fit">
-            <TabsTrigger value="all">Semua</TabsTrigger>
-            <TabsTrigger value="positive">Paling Disukai</TabsTrigger>
-            <TabsTrigger value="recent">Terbaru</TabsTrigger>
-          </TabsList>
-          <TabsContent value="all">
-            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-              {movies.map((film) => (
-                <Link
-                  to={`movie/${film.id}`}
-                  onClick={() => dispatch(fetchMovieDetail(film.id))}
-                >
-                  <AlbumArtwork
-                    key={film.title}
-                    album={film}
-                    className="w-[250px]"
-                    aspectRatio="portrait"
-                    width={250}
-                    height={330}
-                  />
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="positive">
-            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-              {movies.map((film) => (
-                <AlbumArtwork
-                  key={film.title}
-                  album={film}
-                  className="w-[250px]"
-                  aspectRatio="portrait"
-                  width={250}
-                  height={330}
-                />
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="recent">
-            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-              {movies.map((film) => (
-                <AlbumArtwork
-                  key={film.title}
-                  album={film}
-                  className="w-[250px]"
-                  aspectRatio="portrait"
-                  width={250}
-                  height={330}
-                />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+          {movies.map((film) => (
+            <Link
+              to={`movie/${film.id}`}
+              onClick={() => dispatch(fetchMovieDetail(film.id))}
+            >
+              <AlbumArtwork
+                key={film.title}
+                album={film}
+                className="w-[250px]"
+                aspectRatio="portrait"
+                width={250}
+                height={330}
+                positive={
+                  film.comments.filter(
+                    (comment) => comment.classification === "POSITIVE"
+                  ).length
+                }
+                negative={
+                  film.comments.filter(
+                    (comment) => comment.classification === "NEGATIVE"
+                  ).length
+                }
+                neutral={
+                  film.comments.filter(
+                    (comment) => comment.classification === "NEUTRAL"
+                  ).length
+                }
+              />
+            </Link>
+          ))}
+        </div>
       )}
 
       {/* FAQ & Footer */}

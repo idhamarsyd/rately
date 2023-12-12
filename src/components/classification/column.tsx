@@ -17,38 +17,18 @@ import {
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 export type Comment = {
-  ID: string;
-  komentar: string;
-  film: string;
-  label: number;
-  klasifikasi: number;
-  validasi: boolean;
+  id: number;
+  comment_id: number;
+  comment: string;
+  movie: string;
+  classification: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
   // amount: number;
   // status: "pending" | "processing" | "success" | "failed";
 };
 
 export const columnsTesting: ColumnDef<Comment>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "ID",
+    accessorKey: "id",
     header: ({ column }) => {
       return (
         <Button
@@ -62,24 +42,20 @@ export const columnsTesting: ColumnDef<Comment>[] = [
     },
   },
   {
-    accessorKey: "komentar",
+    accessorKey: "comment_id",
+    header: "ID Komentar",
+  },
+  {
+    accessorKey: "comment",
     header: "Komentar",
   },
   {
-    accessorKey: "film",
-    header: "Film",
+    accessorKey: "movie",
+    header: "Movie",
   },
   {
-    accessorKey: "label",
-    header: "Label",
-  },
-  {
-    accessorKey: "klasifikasi",
+    accessorKey: "classification",
     header: "Klasifikasi",
-  },
-  {
-    accessorKey: "validasi",
-    header: "Validasi",
   },
   {
     id: "actions",

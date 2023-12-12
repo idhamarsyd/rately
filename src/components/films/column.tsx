@@ -2,7 +2,6 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
-import { Checkbox } from "../ui/checkbox";
 
 import { Button } from "../ui/button";
 import {
@@ -26,9 +25,8 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { UpdateMovieForm } from "../ui/update-movie-form";
+import { useToken } from "../../hooks/useToken";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type Film = {
   cover: string;
   description: string;
@@ -37,30 +35,9 @@ export type Film = {
   title: string;
   trailer: string;
   year: number;
-  // amount: number;
-  // status: "pending" | "processing" | "success" | "failed";
 };
 
 export const filmsColumn: ColumnDef<Film>[] = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={table.getIsAllPageRowsSelected()}
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Select all"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Select row"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: "id",
     header: ({ column }) => {
@@ -104,23 +81,23 @@ export const filmsColumn: ColumnDef<Film>[] = [
   {
     id: "actions",
     cell: function Cell({ row }) {
-      const comment = row.original;
+      const movie = row.original;
       const dispatch = useAppDispatch();
+      const { token } = useToken();
 
       const deleteMovie = async () => {
         try {
-          await axios.delete(`/delete_movie/${comment.id}`);
-          console.log("Movie deleted successfully");
+          await axios({
+            method: "DELETE",
+            url: `/delete_movie/${movie.id}`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           setTimeout(() => {
             toast({
-              title: "Berhasil menambahkan data film",
-              description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                  <code className="text-white">
-                    Film {comment.title} berhasil dihapus
-                  </code>
-                </pre>
-              ),
+              title: "Berhasil menghapus data film",
+              description: `Film ${movie.title} berhasil dihapus.`,
             });
             dispatch(fetchMovies());
           }, 1000);
@@ -139,15 +116,12 @@ export const filmsColumn: ColumnDef<Film>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            {/* <DropdownMenuItem>Copy comment</DropdownMenuItem>
-            <DropdownMenuSeparator /> */}
             <DropdownMenuItem onClick={() => deleteMovie()}>
               Delete
             </DropdownMenuItem>
             <Sheet>
               <Button
                 variant="ghost"
-                onClick={() => console.log(comment)}
                 asChild
                 className="font-normal w-full justify-start text-left cursor-default select-none rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
               >
@@ -161,7 +135,7 @@ export const filmsColumn: ColumnDef<Film>[] = [
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-8 text-secondary-foreground">
-                  <UpdateMovieForm {...comment} />
+                  <UpdateMovieForm {...movie} />
                 </div>
               </SheetContent>
             </Sheet>

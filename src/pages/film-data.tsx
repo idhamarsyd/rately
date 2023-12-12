@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
-import { Button, buttonVariants } from "../components/ui/button";
 import { DataTable } from "../components/films/data-table";
 import { filmsColumn } from "../components/films/column";
-import { films } from "../data/films";
-import { Outlet, Link } from "react-router-dom";
 import { selectMovies, fetchMovies } from "../stores/moviesSlice";
 import { useAppSelector, useAppDispatch } from "../stores/hooks";
 import { Toaster } from "../components/ui/toaster";

@@ -2,30 +2,68 @@ from flask import Flask, request, jsonify, make_response, request, redirect, fla
 from db import cursor, db
 import json
 from datetime import datetime, timedelta, timezone
+import sys
+import time
+import logging
+from watchdog.observers import Observer
+from watchdog.events import LoggingEventHandler
+from sqlalchemy import create_engine
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
+import os
+from sqlalchemy.engine import URL
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
-# from src.logger import logging
 
 app = Flask(__name__)
 
+url_object = URL.create(
+    "mysql+pymysql",
+    username="root",
+    password="",  # plain (unescaped) text
+    host="localhost",
+    database="youtube-movie",
+)
+
+engine = create_engine(url_object)
+dbb = engine.connect()
+
 app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_DATABASE'] = 'youtube-movie'
 jwt = JWTManager(app)
+
+# QUERIES
+
+GET_MOVIES = "SELECT * FROM movies"
+
+class Movies(dbb.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    genre = db.Column(db.String(), nullable=False)
+    description = db.Column(db.Text)
+    cover = db.Column(db.String(), nullable=False)
+    trailer = db.Column(db.String(), nullable=False)
+
+    # def __repr__(self):
+    #     return f'<Student {self.firstname}>'
 
 
 @app.route("/")
 def hello_api():
-    return {
-        "app_name": "recSys App",
-        "version": "v1.0.0",
-        "message": "Welcome to our recommendation engine!"
-    }
+    movies = Movies.query.all()
+    return movies
 
 @app.route("/movies", methods=["GET"])
 def get_movies():
     cursor.execute("SELECT * FROM movies")
     data = cursor.fetchall()
+    # db.close()
+    cursor.close()
     return jsonify(data)
+
 
 @app.route("/movie/<int:id>", methods=["GET"])
 def get_movie_by_id(id):
@@ -87,12 +125,12 @@ def update_movie(id):
     genre = request.json.get("genre", None)
 
     # Check if movie exists
-    sql_check = """SELECT * FROM movies WHERE id=%s"""
-    values_check = (movie_id,)
-    cursor.execute(sql_check, values_check)
-    result = cursor.fetchone()
-    if not result:
-        return {'msg': 'Data film tidak ditemukan.'}, 404
+    # sql_check = """SELECT * FROM movies WHERE id=%s"""
+    # values_check = (movie_id,)
+    # cursor.execute(sql_check, values_check)
+    # result = cursor.fetchone()
+    # if not result:
+    #     return {'msg': 'Data film tidak ditemukan.'}, 404
 
     # Update movie information
     sql_update = """UPDATE movies SET title=%s, year=%s, genre=%s, description=%s, cover=%s, trailer=%s WHERE id=%s"""
@@ -101,6 +139,95 @@ def update_movie(id):
         cursor.execute(sql_update, values_update)
         db.commit()
         return {'msg': 'Data film berhasil diupdate.'}, 200
+    except Exception as e:
+        return {'msg': str(e)}, 500
+
+@app.route("/comments", methods=["GET"])
+def get_comments():
+    cursor.execute("SELECT * FROM comments")
+    data = cursor.fetchall()
+    return jsonify(data)
+
+@app.route("/comments-formatted", methods=["GET"])
+def get_comments_formatted():
+    cursor.execute("SELECT c.id, c.comment, c.label, m.title FROM comments c JOIN movies m ON c.movie = m.id")
+    data = cursor.fetchall()
+    return jsonify(data)
+
+@app.route("/comments-movies-list", methods=["GET"])
+def get_comments_movies():
+    cursor.execute("SELECT DISTINCT c.movie, m.title FROM comments c JOIN movies m ON c.movie = m.id")
+    data = cursor.fetchall()
+    return jsonify(data)
+
+@app.route('/add_comment', methods=["POST"])
+def add_comment():
+    comment = request.json.get("comment", None)
+    movie = request.json.get("movie", None)
+    label = request.json.get("label", None)
+
+    # Find the movie ID based on the title
+    cursor.execute("SELECT id FROM movies WHERE title = %s", (movie,))
+    movieId = cursor.fetchone()
+    if not movieId:
+        return {'msg': 'Data film tidak ditemukan.'}, 404
+    
+    if label not in ("POSITIVE", "NEGATIVE"):
+        return {"msg": "Invalid label value. Label must be either 'POSITIVE' or 'NEGATIVE'."}, 400
+
+    # Update movie information
+    sql = """
+    INSERT INTO comments (comment, movie, label)
+    SELECT '%s', m.id, '%s'
+    FROM movies m
+    WHERE m.title = '%s'
+    """ % (comment, label, movie)
+    try:
+        cursor.execute(sql)
+        db.commit()
+        return {'msg': 'Data komentar berhasil ditambahkan.'}, 200
+    except Exception as e:
+        return {'msg': str(e)}, 500
+
+@app.route('/delete_comment/<int:id>', methods=['DELETE'])
+def delete_comment(id):
+    sql_delete = """DELETE FROM comments WHERE id=%s"""
+    values_delete = (id,)
+    try:
+        cursor.execute(sql_delete, values_delete)
+        db.commit()
+        return {'msg': 'Data komentar berhasil dihapus'}, 200
+    except Exception as e:
+        return {'msg': str(e)}, 500
+
+@app.route('/update_comment/<id>', methods=["PUT"])
+def update_comment(id):
+    comment_id = int(id)
+    comment = request.json.get("comment", None)
+    movie = request.json.get("movie", None)
+    label = request.json.get("label", None)
+
+    # Check if movie exist
+    cursor.execute("SELECT id FROM movies WHERE title = %s", (movie,))
+    movieId = cursor.fetchone()
+    if not movieId:
+        return {'msg': 'Data film tidak ditemukan.'}, 404
+
+    # Check if comment exists
+    sql_check = """SELECT * FROM comments WHERE id=%s"""
+    values_check = (comment_id,)
+    cursor.execute(sql_check, values_check)
+    result = cursor.fetchone()
+    if not result:
+        return {'msg': 'Komentar tidak ditemukan.'}, 404
+
+    # Update comment information
+    sql_update = """UPDATE comments SET comment=%s, movie=%s, label=%s WHERE id=%s"""
+    values_update = (comment, movieId['id'], label, comment_id)
+    try:
+        cursor.execute(sql_update, values_update)
+        db.commit()
+        return {'msg': 'Komentar berhasil diupdate.'}, 200
     except Exception as e:
         return {'msg': str(e)}, 500
 
@@ -164,3 +291,17 @@ app.register_blueprint(first)
 
 if __name__=="__main__":
     app.run(host="0.0.0.0")
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+    path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    event_handler = LoggingEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()

@@ -1,4 +1,8 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "./store";
 import axios from "axios";
@@ -13,10 +17,30 @@ interface Film {
   year: number;
 }
 
+interface Comment {
+  id: number;
+  comment: string;
+  comment_id: number;
+  movie: number;
+  classification: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+}
+
+interface ClassifiedFilm {
+  cover: string;
+  description: string;
+  genre: string;
+  id: string;
+  title: string;
+  trailer: string;
+  year: number;
+  comments: Comment[];
+}
+
 // Define a type for the slice state
 interface MoviesData {
   data: Film[];
-  detail: Film[];
+  classified_data: ClassifiedFilm[];
+  detail: ClassifiedFilm | null;
   isLoading: boolean;
   isError: boolean;
 }
@@ -24,16 +48,26 @@ interface MoviesData {
 // Define the initial state using that type
 const initialState: MoviesData = {
   data: [],
-  detail: [],
+  classified_data: [],
+  detail: null,
   isLoading: false,
   isError: false,
 };
 
 export const fetchMovies = createAsyncThunk("movies/fetchMovies", async () => {
-  const response = await axios.get("/movies");
+  const response = await axios.get("/movies-data");
   const data = await response.data;
   return data;
 });
+
+export const fetchClassifiedMovies = createAsyncThunk(
+  "movies/fetchClassifiedMovies",
+  async () => {
+    const response = await axios.get("/movies-classified");
+    const data = await response.data;
+    return data;
+  }
+);
 
 export const fetchMovieDetail = createAsyncThunk(
   "movies/fetchMovieDetail",
@@ -53,27 +87,12 @@ export const searchMovie = createAsyncThunk(
   }
 );
 
-export const deleteMovie = createAsyncThunk(
-  "movies/deleteMovie",
-  async (id: string) => {
-    // const response = await axios.delete(`/delete-movie/${id}`);
-    console.log(id);
-    // const msg = await response.;
-    // return data;
-  }
-);
-
 export const movieSlice = createSlice({
   name: "movies",
-  // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
     setLoading: (state) => {
       state.isLoading = true;
-    },
-    // Use the PayloadAction type to declare the contents of `action.payload`
-    addMovies: (state, action: PayloadAction<Film[]>) => {
-      state.data = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -86,11 +105,23 @@ export const movieSlice = createSlice({
       state.isLoading = false;
       state.isError = false;
     });
-    builder.addCase(fetchMovies.rejected, (state, action) => {
+    builder.addCase(fetchMovies.rejected, (state) => {
+      state.isError = true;
+    });
+    // Fetch classified movies
+    builder.addCase(fetchClassifiedMovies.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchClassifiedMovies.fulfilled, (state, action) => {
+      state.classified_data = action.payload;
+      state.isLoading = false;
+      state.isError = false;
+    });
+    builder.addCase(fetchClassifiedMovies.rejected, (state) => {
       state.isError = true;
     });
     // Fetch movie detail
-    builder.addCase(fetchMovieDetail.pending, (state, action) => {
+    builder.addCase(fetchMovieDetail.pending, (state) => {
       state.isLoading = true;
     });
     builder.addCase(fetchMovieDetail.fulfilled, (state, action) => {
@@ -98,28 +129,45 @@ export const movieSlice = createSlice({
       state.isLoading = false;
       state.isError = false;
     });
-    builder.addCase(fetchMovieDetail.rejected, (state, action) => {
+    builder.addCase(fetchMovieDetail.rejected, (state) => {
       state.isError = true;
     });
     // search movie
-    builder.addCase(searchMovie.pending, (state, action) => {
+    builder.addCase(searchMovie.pending, (state) => {
       state.isLoading = true;
     });
     builder.addCase(searchMovie.fulfilled, (state, action) => {
-      state.data = action.payload;
+      state.classified_data = action.payload;
       state.isLoading = false;
       state.isError = false;
     });
-    builder.addCase(searchMovie.rejected, (state, action) => {
+    builder.addCase(searchMovie.rejected, (state) => {
       state.isError = true;
     });
   },
 });
 
-export const { setLoading, addMovies } = movieSlice.actions;
+export const { setLoading } = movieSlice.actions;
 
-// Other code such as selectors can use the imported `RootState` type
 export const selectMovies = (state: RootState) => state.movies.data;
-export const selectMovieDetail = (state: RootState) => state.movies.detail[0];
+export const selectClassifiedMovies = (state: RootState) =>
+  state.movies.classified_data;
+export const selectMovieDetail = (state: RootState) => state.movies.detail;
+// export const selectPositiveComments = (comments: Comment[]) => {
+//   return comments.filter((comment) => comment.label === "POSITIVE");
+// };
+// export const selectMoviesWithCommentCounts = createSelector(
+//   [selectClassifiedMovies],
+//   (movies: ClassifiedFilm[]) => {
+//     return movies.map((movie) => {
+//       const positiveComments = selectPositiveComments(movie.comments).length;
+
+//       return {
+//         ...movie,
+//         positiveComments,
+//       };
+//     });
+//   }
+// );
 
 export default movieSlice.reducer;

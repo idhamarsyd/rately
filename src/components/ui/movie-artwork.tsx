@@ -21,6 +21,9 @@ interface AlbumArtworkProps extends React.HTMLAttributes<HTMLDivElement> {
   aspectRatio?: "portrait" | "square";
   width?: number;
   height?: number;
+  positive?: number;
+  negative?: number;
+  neutral?: number;
 }
 
 export function AlbumArtwork({
@@ -29,6 +32,9 @@ export function AlbumArtwork({
   width,
   height,
   className,
+  positive,
+  negative,
+  neutral,
   ...props
 }: AlbumArtworkProps) {
   return (
@@ -63,37 +69,39 @@ export function AlbumArtwork({
         <div className="flex flex-row items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="#22C55E"
-            className="w-5 h-5"
+            width="20"
+            height="20"
+            fill="#00DFA2"
+            viewBox="0 0 256 256"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"
-            />
+            <path d="M178.39,158c-11,19.06-29.39,30-50.39,30s-39.36-10.93-50.39-30a12,12,0,0,1,20.78-12c3.89,6.73,12.91,18,29.61,18s25.72-11.28,29.61-18a12,12,0,1,1,20.78,12ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128ZM92,124a16,16,0,1,0-16-16A16,16,0,0,0,92,124Zm72-32a16,16,0,1,0,16,16A16,16,0,0,0,164,92Z"></path>
           </svg>
 
-          <p className="text-xs font-medium">120</p>
+          <p className="text-xs font-medium">{positive}</p>
         </div>
         <div className="flex flex-row items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="#F43F5E"
-            className="w-5 h-5"
+            width="20"
+            height="20"
+            fill="#F8DE22"
+            viewBox="0 0 256 256"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"
-            />
+            <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm52-52a12,12,0,0,1-12,12H88a12,12,0,0,1,0-24h80A12,12,0,0,1,180,160ZM76,108a16,16,0,1,1,16,16A16,16,0,0,1,76,108Zm104,0a16,16,0,1,1-16-16A16,16,0,0,1,180,108Z"></path>
           </svg>
-          <p className="text-xs font-medium">120</p>
+          <p className="text-xs font-medium">{neutral}</p>
+        </div>
+        <div className="flex flex-row items-center gap-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="#F94C10"
+            viewBox="0 0 256 256"
+          >
+            <path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212ZM76,108a16,16,0,1,1,16,16A16,16,0,0,1,76,108Zm104,0a16,16,0,1,1-16-16A16,16,0,0,1,180,108Zm-3.26,57a12,12,0,0,1-19.48,14,36,36,0,0,0-58.52,0,12,12,0,0,1-19.48-14,60,60,0,0,1,97.48,0Z"></path>
+          </svg>
+          <p className="text-xs font-medium">{negative}</p>
         </div>
       </div>
     </div>

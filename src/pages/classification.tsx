@@ -1,11 +1,9 @@
 // import React from "react";
 import { DataTable } from "../components/classification/data-table";
-import {
-  Comment,
-  columnsTesting,
-  columnsTraining,
-} from "../components/classification/column";
-import { comments } from "../data/comments";
+import { Comment, columnsTesting } from "../components/classification/column";
+
+import { columnsComment } from "../components/comments/column";
+// import { comments } from "../data/comments";
 import { Outlet, Link } from "react-router-dom";
 import {
   Table,
@@ -23,6 +21,16 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { ReactECharts } from "../components/ui/charts";
+import { useAppDispatch, useAppSelector } from "../stores/hooks";
+import { useEffect } from "react";
+import {
+  fetchClassifications,
+  fetchComments,
+  fetchDataTraining,
+  selectClassifications,
+  selectComments,
+  selectDataTraining,
+} from "../stores/commentsSlice";
 
 type EChartsOption = echarts.EChartsOption;
 
@@ -70,6 +78,15 @@ const option: EChartsOption = {
 };
 
 function Classification() {
+  const comments = useAppSelector(selectDataTraining);
+  const classifications = useAppSelector(selectClassifications);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchDataTraining());
+    dispatch(fetchClassifications());
+    // dispatch(fetchMoviesList());
+  }, []);
   return (
     <div className="min-h-screen flex flex-col gap-5 my-8 mx-4">
       <div className="flex items-center justify-between space-y-2">
@@ -91,10 +108,10 @@ function Classification() {
           <TabsTrigger value="testing">Data Testing</TabsTrigger>
         </TabsList>
         <TabsContent value="training">
-          <DataTable columns={columnsTraining} data={comments} />
+          <DataTable columns={columnsComment} data={comments} />
         </TabsContent>
         <TabsContent value="testing">
-          <DataTable columns={columnsTesting} data={comments} />
+          <DataTable columns={columnsTesting} data={classifications} />
         </TabsContent>
       </Tabs>
       <div className="text-secondary-foreground h-[400px] flex">
