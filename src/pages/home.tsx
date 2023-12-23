@@ -42,7 +42,6 @@ function Home() {
 
   useEffect(() => {
     dispatch(fetchClassifiedMovies());
-    console.log(movies);
   }, []);
 
   const inputHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,6 +136,7 @@ function Home() {
         <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
           {movies.map((film) => (
             <Link
+              key={film.id}
               to={`movie/${film.id}`}
               onClick={() => dispatch(fetchMovieDetail(film.id))}
             >

@@ -8,25 +8,16 @@ import {
 } from "../components/ui/card";
 import { Button, buttonVariants } from "../components/ui/button";
 import { Outlet, Link } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table";
 import { useAppDispatch, useAppSelector } from "../stores/hooks";
 import { fetchMovies } from "../stores/moviesSlice";
 import {
-  fetchClassifications,
+  fetchDataClassifications,
   fetchComments,
-  fetchDataTraining,
   fetchMetrics,
   selectMetrics,
+  fetchDataTraining,
+  fetchDataTesting,
 } from "../stores/commentsSlice";
-import { Item } from "@radix-ui/react-accordion";
 
 function Overview() {
   const latestMovie = useAppSelector((state) =>
@@ -34,51 +25,64 @@ function Overview() {
       ? state.movies.data[state.movies.data.length - 1]
       : null
   );
+
   const totalMovies = useAppSelector((state) => state.movies.data.length);
   const totalComments = useAppSelector((state) => state.comments.data.length);
+
   const metrics = useAppSelector(selectMetrics);
   const totalPositive = useAppSelector((state) => {
-    const classificationCount = state.comments.classification.filter(
+    const classificationCount = state.comments.dataClassification.filter(
       (item) => item.classification === "POSITIVE"
     ).length;
 
-    const dataTrainingCount = state.comments.dataTraining.filter(
+    const dataCount = state.comments.data.filter(
       (item) => item.label === "POSITIVE"
     ).length;
 
-    return classificationCount + dataTrainingCount;
+    return classificationCount + dataCount;
   });
   const totalNeutral = useAppSelector((state) => {
-    const classificationCount = state.comments.classification.filter(
+    const classificationCount = state.comments.dataClassification.filter(
       (item) => item.classification === "NEUTRAL"
     ).length;
 
-    const dataTrainingCount = state.comments.dataTraining.filter(
+    const dataCount = state.comments.data.filter(
       (item) => item.label === "NEUTRAL"
     ).length;
 
-    return classificationCount + dataTrainingCount;
+    return classificationCount + dataCount;
   });
   const totalNegative = useAppSelector((state) => {
-    const classificationCount = state.comments.classification.filter(
+    const classificationCount = state.comments.dataClassification.filter(
       (item) => item.classification === "NEGATIVE"
     ).length;
 
-    const dataTrainingCount = state.comments.dataTraining.filter(
+    const dataCount = state.comments.data.filter(
       (item) => item.label === "NEGATIVE"
     ).length;
 
-    return classificationCount + dataTrainingCount;
+    return classificationCount + dataCount;
   });
+
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(fetchMovies());
-    dispatch(fetchComments());
-    dispatch(fetchClassifications());
-    dispatch(fetchDataTraining());
-    dispatch(fetchMetrics());
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchMovies());
+        await dispatch(fetchComments());
+        // await dispatch(fetchDataClassifications());
+        // await dispatch(fetchDataTraining());
+        // await dispatch(fetchDataTesting());
+        await dispatch(fetchMetrics());
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
+
   return (
     <div className="min-h-screen flex flex-col gap-5 mb-8">
       <img
@@ -204,33 +208,6 @@ function Overview() {
           </Button>
         </div>
       </div>
-      {/* <div className="mx-4 gap-3 flex flex-col mt-4 text-secondary-foreground">
-        <Table>
-          <TableCaption>Urutan film yang paling disukai.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Peringkat</TableHead>
-              <TableHead>Judul</TableHead>
-              <TableHead>Tahun Rilis</TableHead>
-              <TableHead className="text-right">Komentar Positif</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">#1</TableCell>
-              <TableCell>Talk To Me</TableCell>
-              <TableCell>2023</TableCell>
-              <TableCell className="text-right">100</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">#2</TableCell>
-              <TableCell>Dark</TableCell>
-              <TableCell>2020</TableCell>
-              <TableCell className="text-right">88</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div> */}
     </div>
   );
 }

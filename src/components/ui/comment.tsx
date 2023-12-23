@@ -51,7 +51,6 @@ export function Comment({ data, type }: CommentProps) {
   return (
     <div className="flex">
       <Avatar className="h-9 w-9">
-        <AvatarImage src="https://githu/shadcn.png" alt="Avatar" />
         <AvatarFallback>{getSVGForType()}</AvatarFallback>
       </Avatar>
       <div className="ml-4 space-y-1">

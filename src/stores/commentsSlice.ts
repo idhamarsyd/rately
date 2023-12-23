@@ -7,6 +7,7 @@ interface Comment {
   comment: string;
   movie: string;
   label: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  category: "TESTING" | "TRAINING";
 }
 
 interface Classification {
@@ -15,6 +16,7 @@ interface Classification {
   comment: string;
   movie: string;
   classification: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  validation: "SESUAI" | "TIDAK SESUAI";
 }
 
 interface Metrics {
@@ -28,7 +30,8 @@ interface Metrics {
 interface CommentsData {
   data: Comment[];
   dataTraining: Comment[];
-  classification: Classification[];
+  dataTesting: Comment[];
+  dataClassification: Classification[];
   metrics: Metrics | null;
   isLoading: boolean;
   isError: boolean;
@@ -37,7 +40,8 @@ interface CommentsData {
 const initialState: CommentsData = {
   data: [],
   dataTraining: [],
-  classification: [],
+  dataTesting: [],
+  dataClassification: [],
   metrics: null,
   isLoading: false,
   isError: false,
@@ -61,8 +65,17 @@ export const fetchDataTraining = createAsyncThunk(
   }
 );
 
-export const fetchClassifications = createAsyncThunk(
-  "comments/fecthClassifications",
+export const fetchDataTesting = createAsyncThunk(
+  "comments/fecthDataTesting",
+  async () => {
+    const response = await axios.get("/select-testing");
+    const data = await response.data;
+    return data;
+  }
+);
+
+export const fetchDataClassifications = createAsyncThunk(
+  "comments/fecthDataClassifications",
   async () => {
     const response = await axios.get("/select-classifications");
     const data = await response.data;
@@ -74,6 +87,24 @@ export const fetchMetrics = createAsyncThunk(
   "comments/fetchMetrics",
   async () => {
     const response = await axios.get("/select-metrics");
+    const data = await response.data;
+    return data;
+  }
+);
+
+export const resetClassification = createAsyncThunk(
+  "comments/resetClassification",
+  async () => {
+    const response = await axios.get("/reset-classification");
+    const data = await response.data;
+    return data;
+  }
+);
+
+export const fetchStartClassification = createAsyncThunk(
+  "comments/fetchStartClassification",
+  async () => {
+    const response = await axios.get("/run_sentiment");
     const data = await response.data;
     return data;
   }
@@ -112,16 +143,28 @@ export const commentSlice = createSlice({
     builder.addCase(fetchDataTraining.rejected, (state, action) => {
       state.isError = true;
     });
-    // Fetch all classification result
-    builder.addCase(fetchClassifications.pending, (state, action) => {
+    // Fetch all data testing
+    builder.addCase(fetchDataTesting.pending, (state, action) => {
       state.isLoading = true;
     });
-    builder.addCase(fetchClassifications.fulfilled, (state, action) => {
-      state.classification = action.payload;
+    builder.addCase(fetchDataTesting.fulfilled, (state, action) => {
+      state.dataTesting = action.payload;
       state.isLoading = false;
       state.isError = false;
     });
-    builder.addCase(fetchClassifications.rejected, (state, action) => {
+    builder.addCase(fetchDataTesting.rejected, (state, action) => {
+      state.isError = true;
+    });
+    // Fetch all data classification
+    builder.addCase(fetchDataClassifications.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchDataClassifications.fulfilled, (state, action) => {
+      state.dataClassification = action.payload;
+      state.isLoading = false;
+      state.isError = false;
+    });
+    builder.addCase(fetchDataClassifications.rejected, (state, action) => {
       state.isError = true;
     });
     // Fetch all metrics
@@ -136,6 +179,30 @@ export const commentSlice = createSlice({
     builder.addCase(fetchMetrics.rejected, (state, action) => {
       state.isError = true;
     });
+    // Start classification
+    builder.addCase(fetchStartClassification.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchStartClassification.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.isError = false;
+    });
+    builder.addCase(fetchStartClassification.rejected, (state, action) => {
+      state.isError = true;
+    });
+    // Reset classification
+    builder.addCase(resetClassification.pending, (state, action) => {
+      state.isLoading = true;
+    });
+    builder.addCase(resetClassification.fulfilled, (state, action) => {
+      state.metrics = null;
+      state.dataClassification = [];
+      state.isLoading = false;
+      state.isError = false;
+    });
+    builder.addCase(resetClassification.rejected, (state, action) => {
+      state.isError = true;
+    });
   },
 });
 
@@ -145,9 +212,11 @@ export const { setLoading } = commentSlice.actions;
 export const selectComments = (state: RootState) => state.comments.data;
 export const selectMetrics = (state: RootState) => state.comments.metrics;
 export const selectClassifications = (state: RootState) =>
-  state.comments.classification;
+  state.comments.dataClassification;
 export const selectDataTraining = (state: RootState) =>
   state.comments.dataTraining;
+export const selectDataTesting = (state: RootState) =>
+  state.comments.dataTesting;
 export const selectMoviesList = (state: RootState) => state.movies.data;
 
 export default commentSlice.reducer;

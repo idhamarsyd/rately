@@ -1,9 +1,9 @@
-// import React from "react";
+import React from "react";
 import { DataTable } from "../components/classification/data-table";
-import { Comment, columnsTesting } from "../components/classification/column";
-
-import { columnsComment } from "../components/comments/column";
-// import { comments } from "../data/comments";
+import {
+  columnsComment,
+  columnsClassification,
+} from "../components/classification/column";
 import { Outlet, Link } from "react-router-dom";
 import {
   Table,
@@ -24,69 +24,145 @@ import { ReactECharts } from "../components/ui/charts";
 import { useAppDispatch, useAppSelector } from "../stores/hooks";
 import { useEffect } from "react";
 import {
-  fetchClassifications,
+  fetchDataClassifications,
   fetchComments,
   fetchDataTraining,
   selectClassifications,
   selectComments,
+  selectDataTesting,
   selectDataTraining,
+  fetchDataTesting,
+  resetClassification,
+  fetchStartClassification,
+  selectMetrics,
+  fetchMetrics,
 } from "../stores/commentsSlice";
+import { Button } from "../components/ui/button";
+import { Icons } from "../components/ui/icons";
+import { toast } from "../components/ui/use-toast";
+import { Toaster } from "../components/ui/toaster";
 
 type EChartsOption = echarts.EChartsOption;
 
-const option: EChartsOption = {
-  color: ["#A8DF8E", "#FF4B91"],
-  tooltip: {
-    trigger: "item",
-  },
-  legend: {
-    top: "5%",
-    left: "center",
-  },
-  series: [
-    {
-      name: "Klasifikasi",
-      type: "pie",
-      radius: ["40%", "70%"],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 0,
-        borderColor: "#fff",
-        borderWidth: 2,
-      },
-      label: {
-        show: false,
-        position: "center",
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: 24,
-          fontWeight: "bold",
-          fontFamily: "Inter",
-        },
-      },
-      labelLine: {
-        show: false,
-      },
-      data: [
-        { value: 1048, name: "Sesuai" },
-        { value: 80, name: "Tidak Sesuai" },
-      ],
-    },
-  ],
-};
-
 function Classification() {
-  const comments = useAppSelector(selectDataTraining);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoadingReset, setIsLoadingReset] = React.useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = React.useState<string>("training");
+
+  const training = useAppSelector(selectDataTraining);
+  const testing = useAppSelector(selectDataTesting);
   const classifications = useAppSelector(selectClassifications);
+
   const dispatch = useAppDispatch();
 
+  const classificationHandler = async () => {
+    try {
+      setIsLoading(true);
+      await dispatch(fetchStartClassification());
+      dispatch(fetchDataClassifications());
+    } catch (error) {
+      console.error("Error in classificationHandler:", error);
+    } finally {
+      setIsLoading(false);
+      toast({
+        title: "Klasifikasi selesai.",
+        description: "Proses klasifikasi selesai, silahkan lihat hasilnya.",
+      });
+    }
+  };
+
+  const resetHandler = async () => {
+    try {
+      setIsLoadingReset(true);
+      await dispatch(resetClassification());
+      dispatch(fetchDataClassifications());
+    } catch (error) {
+      console.error("Error in resetHandler:", error);
+    } finally {
+      setIsLoadingReset(false);
+      toast({
+        title: "Reset klasiikasi selesai.",
+        description: "Proses reset klasifikasi selesai, tabel akan kosong.",
+      });
+    }
+  };
+
   useEffect(() => {
-    dispatch(fetchDataTraining());
-    dispatch(fetchClassifications());
-    // dispatch(fetchMoviesList());
-  }, []);
+    const fetchData = async () => {
+      switch (selectedTab) {
+        case "training":
+          await dispatch(fetchDataTraining());
+          break;
+        case "testing":
+          await dispatch(fetchDataTesting());
+          break;
+        case "classification":
+          await dispatch(fetchDataClassifications());
+          break;
+        default:
+          break;
+      }
+      await dispatch(fetchMetrics());
+    };
+
+    fetchData();
+  }, [dispatch, selectedTab]);
+
+  const metrics = useAppSelector(selectMetrics);
+
+  const option: EChartsOption = {
+    color: ["#A8DF8E", "#FF4B91"],
+    tooltip: {
+      trigger: "item",
+    },
+    legend: {
+      top: "5%",
+      left: "center",
+    },
+    series: [
+      {
+        name: "Klasifikasi",
+        type: "pie",
+        radius: ["40%", "70%"],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 0,
+          borderColor: "#fff",
+          borderWidth: 2,
+        },
+        label: {
+          show: false,
+          position: "center",
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 24,
+            fontWeight: "bold",
+            fontFamily: "Inter",
+          },
+        },
+        labelLine: {
+          show: false,
+        },
+        data: [
+          {
+            value: classifications.filter(
+              (data) => data.validation === "SESUAI"
+            ).length,
+            name: "SESUAI",
+          },
+          {
+            value: classifications.filter(
+              (data) => data.validation === "TIDAK SESUAI"
+            ).length,
+            name: "TIDAK SESUAI",
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col gap-5 my-8 mx-4">
       <div className="flex items-center justify-between space-y-2">
@@ -98,20 +174,47 @@ function Classification() {
             Proses dan hasil klasifikasi komentar film.
           </p>
         </div>
+        <div className="flex items-center gap-4">
+          <Button
+            disabled={isLoading}
+            variant="default"
+            onClick={() => classificationHandler()}
+          >
+            {isLoading && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Klasifikasi
+          </Button>
+          <Button
+            disabled={isLoadingReset}
+            variant="destructive"
+            onClick={() => resetHandler()}
+          >
+            {isLoadingReset && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Reset
+          </Button>
+        </div>
       </div>
       <Tabs
-        defaultValue="training"
+        value={selectedTab}
+        onValueChange={(value) => setSelectedTab(value)}
         className="flex flex-col text-secondary-foreground gap-2"
       >
         <TabsList className="w-fit">
           <TabsTrigger value="training">Data Training</TabsTrigger>
           <TabsTrigger value="testing">Data Testing</TabsTrigger>
+          <TabsTrigger value="classification">Hasil Klasifikasi</TabsTrigger>
         </TabsList>
         <TabsContent value="training">
-          <DataTable columns={columnsComment} data={comments} />
+          <DataTable columns={columnsComment} data={training} />
         </TabsContent>
         <TabsContent value="testing">
-          <DataTable columns={columnsTesting} data={classifications} />
+          <DataTable columns={columnsComment} data={testing} />
+        </TabsContent>
+        <TabsContent value="classification">
+          <DataTable columns={columnsClassification} data={classifications} />
         </TabsContent>
       </Tabs>
       <div className="text-secondary-foreground h-[400px] flex">
@@ -119,6 +222,28 @@ function Classification() {
       </div>
       <div className="col-span-1">
         <Table>
+          <TableCaption>Confusion Matrix</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead></TableHead>
+              <TableHead>Accuracy</TableHead>
+              <TableHead>Precision</TableHead>
+              <TableHead>Recall</TableHead>
+              <TableHead>F-1 Score</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Hasil</TableCell>
+              <TableCell>{metrics?.accuracy}</TableCell>
+              <TableCell>{metrics?.precision}</TableCell>
+              <TableCell>{metrics?.recall}</TableCell>
+              <TableCell>{metrics?.f1_score}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        {/* Confusion Matrix Table */}
+        {/* <Table>
           <TableCaption>Confusion Matrix</TableCaption>
           <TableHeader>
             <TableRow>
@@ -139,8 +264,9 @@ function Classification() {
               <TableCell>78%</TableCell>
             </TableRow>
           </TableBody>
-        </Table>
+        </Table> */}
       </div>
+      <Toaster />
     </div>
   );
 }

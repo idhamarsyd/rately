@@ -39,9 +39,11 @@ const formSchema = z.object({
   movie: z.string({
     required_error: "Please select the movie.",
   }),
-  //   movie: z.string(),
   label: z.string({
     required_error: "Please select the label.",
+  }),
+  category: z.string({
+    required_error: "Please select the data category.",
   }),
 });
 
@@ -68,6 +70,7 @@ export function CommentForm() {
       comment: "",
       movie: undefined,
       label: undefined,
+      category: undefined,
     },
   });
 
@@ -92,6 +95,7 @@ export function CommentForm() {
         comment: data.comment,
         movie: data.movie,
         label: data.label,
+        category: data.category,
       },
     })
       .then((response) => {
@@ -204,7 +208,32 @@ export function CommentForm() {
                       </FormControl>
                       <SelectContent className="dark">
                         <SelectItem value="POSITIVE">POSITIVE</SelectItem>
+                        <SelectItem value="NEUTRAL">NEUTRAL</SelectItem>
                         <SelectItem value="NEGATIVE">NEGATIVE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select data category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="dark">
+                        <SelectItem value="TESTING">TESTING</SelectItem>
+                        <SelectItem value="TRAINING">TRAINING</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

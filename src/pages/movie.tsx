@@ -22,7 +22,6 @@ function Movie() {
 
   useEffect(() => {
     dispatch(fetchMovieDetail(movieId.movieId!));
-    console.log(movie);
   }, []);
 
   return (

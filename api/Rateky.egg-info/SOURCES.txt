@@ -1,6 +1,0 @@
-setup.py
-Rateky.egg-info/PKG-INFO
-Rateky.egg-info/SOURCES.txt
-Rateky.egg-info/dependency_links.txt
-Rateky.egg-info/requires.txt
-Rateky.egg-info/top_level.txt

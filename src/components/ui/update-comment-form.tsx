@@ -39,9 +39,11 @@ const formSchema = z.object({
   movie: z.string({
     required_error: "Please select the movie.",
   }),
-  //   movie: z.string(),
   label: z.string({
     required_error: "Please select the label.",
+  }),
+  category: z.string({
+    required_error: "Please select the data category.",
   }),
 });
 
@@ -50,9 +52,16 @@ export type Comment = {
   comment: string;
   movie: string;
   label: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  category: "TESTING" | "TRAINING";
 };
 
-export function UpdateCommentForm({ comment, movie, label, id }: Comment) {
+export function UpdateCommentForm({
+  comment,
+  movie,
+  label,
+  id,
+  category,
+}: Comment) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
   const dispatch = useAppDispatch();
@@ -74,6 +83,7 @@ export function UpdateCommentForm({ comment, movie, label, id }: Comment) {
       comment: comment,
       movie: movie,
       label: label,
+      category: category,
     },
   });
 
@@ -89,6 +99,7 @@ export function UpdateCommentForm({ comment, movie, label, id }: Comment) {
         comment: data.comment,
         movie: data.movie,
         label: data.label,
+        category: data.category,
       },
     })
       .then((response) => {
@@ -207,7 +218,32 @@ export function UpdateCommentForm({ comment, movie, label, id }: Comment) {
                       </FormControl>
                       <SelectContent className="dark">
                         <SelectItem value="POSITIVE">POSITIVE</SelectItem>
+                        <SelectItem value="NEUTRAL">NEUTRAL</SelectItem>
                         <SelectItem value="NEGATIVE">NEGATIVE</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select data category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="dark">
+                        <SelectItem value="TESTING">TESTING</SelectItem>
+                        <SelectItem value="TRAINING">TRAINING</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

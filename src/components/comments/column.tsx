@@ -44,28 +44,10 @@ export type Comment = {
   comment: string;
   movie: string;
   label: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  category: "TESTING" | "TRAINING";
 };
 
 export const columnsComment: ColumnDef<Comment>[] = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={table.getIsAllPageRowsSelected()}
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Select all"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Select row"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
   {
     accessorKey: "id",
     header: ({ column }) => {
@@ -91,25 +73,10 @@ export const columnsComment: ColumnDef<Comment>[] = [
   {
     accessorKey: "label",
     header: "Label",
-    // id: "label",
-    // cell: ({ row }) => {
-    //   const comment = row.original;
-
-    //   return (
-    //     <DropdownMenu>
-    //       <DropdownMenuTrigger asChild>
-    //         <Button variant="secondary" className="text-secondary-foreground">
-    //           {comment.label}
-    //         </Button>
-    //       </DropdownMenuTrigger>
-    //       <DropdownMenuContent align="end">
-    //         <DropdownMenuLabel>Atur Label</DropdownMenuLabel>
-    //         <DropdownMenuItem>POSITIVE</DropdownMenuItem>
-    //         <DropdownMenuItem>NEGATIVE</DropdownMenuItem>
-    //       </DropdownMenuContent>
-    //     </DropdownMenu>
-    //   );
-    // },
+  },
+  {
+    accessorKey: "category",
+    header: "Kategori",
   },
   {
     id: "actions",
