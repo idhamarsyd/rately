@@ -117,6 +117,10 @@ export const commentSlice = createSlice({
     setLoading: (state) => {
       state.isLoading = true;
     },
+    emptyClassification: (state) => {
+      state.dataClassification = [];
+      state.metrics = null;
+    },
   },
   extraReducers: (builder) => {
     // Fetch all comments
@@ -206,7 +210,7 @@ export const commentSlice = createSlice({
   },
 });
 
-export const { setLoading } = commentSlice.actions;
+export const { setLoading, emptyClassification } = commentSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectComments = (state: RootState) => state.comments.data;

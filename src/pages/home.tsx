@@ -1,4 +1,4 @@
-// import React from "react";
+import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -39,6 +39,7 @@ function Home() {
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState("");
   const [searchStatus, setSearchStatus] = useState(false);
+  const [selectedTab, setSelectedTab] = React.useState<string>("all");
 
   useEffect(() => {
     dispatch(fetchClassifiedMovies());
@@ -124,49 +125,136 @@ function Home() {
         )}
       </div>
       {/* Gallery */}
-      {isLoading ? (
-        // <h1 className="text-secondary-foreground">Getting the movies...</h1>
-        <div className="flex flex-row items-center mt-8 gap-4">
-          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
-          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
-          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
-          <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
-          {movies.map((film) => (
-            <Link
-              key={film.id}
-              to={`movie/${film.id}`}
-              onClick={() => dispatch(fetchMovieDetail(film.id))}
-            >
-              <AlbumArtwork
-                key={film.title}
-                album={film}
-                className="w-[250px]"
-                aspectRatio="portrait"
-                width={250}
-                height={330}
-                positive={
-                  film.comments.filter(
+      <Tabs
+        value={selectedTab}
+        onValueChange={(value) => setSelectedTab(value)}
+        className="flex flex-col text-secondary-foreground items-center gap-2"
+      >
+        <TabsList className="w-fit">
+          <TabsTrigger value="all">Semua</TabsTrigger>
+          <TabsTrigger value="recommended">Rekomendasi</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all">
+          {isLoading ? (
+            // <h1 className="text-secondary-foreground">Getting the movies...</h1>
+            <div className="flex flex-row items-center mt-8 gap-4">
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+              {movies.map((film) => (
+                <Link
+                  key={film.id}
+                  to={`movie/${film.id}`}
+                  onClick={() => dispatch(fetchMovieDetail(film.id))}
+                >
+                  <AlbumArtwork
+                    key={film.title}
+                    album={film}
+                    className="w-[250px]"
+                    aspectRatio="portrait"
+                    width={250}
+                    height={330}
+                    recommended={
+                      film.comments.filter(
+                        (comment) => comment.classification === "POSITIVE"
+                      ).length /
+                        film.comments.length >=
+                      0.6
+                    }
+                    positive={
+                      film.comments.filter(
+                        (comment) => comment.classification === "POSITIVE"
+                      ).length
+                    }
+                    negative={
+                      film.comments.filter(
+                        (comment) => comment.classification === "NEGATIVE"
+                      ).length
+                    }
+                    neutral={
+                      film.comments.filter(
+                        (comment) => comment.classification === "NEUTRAL"
+                      ).length
+                    }
+                  />
+                </Link>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        <TabsContent value="recommended">
+          {isLoading ? (
+            // <h1 className="text-secondary-foreground">Getting the movies...</h1>
+            <div className="flex flex-row items-center mt-8 gap-4">
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+              <Skeleton className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground h-auto w-[250px] aspect-[3/4]" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-4 pb-4 mt-6 text-secondary-foreground">
+              {movies
+                .filter((film) => {
+                  const positiveComments = film.comments.filter(
                     (comment) => comment.classification === "POSITIVE"
-                  ).length
-                }
-                negative={
-                  film.comments.filter(
-                    (comment) => comment.classification === "NEGATIVE"
-                  ).length
-                }
-                neutral={
-                  film.comments.filter(
-                    (comment) => comment.classification === "NEUTRAL"
-                  ).length
-                }
-              />
-            </Link>
-          ))}
-        </div>
-      )}
+                  ).length;
+                  const totalComments = film.comments.length;
+                  return (
+                    totalComments > 0 && positiveComments / totalComments >= 0.6
+                  );
+                })
+                .sort((a, b) => {
+                  const positiveRateA =
+                    a.comments.filter(
+                      (comment) => comment.classification === "POSITIVE"
+                    ).length / a.comments.length;
+                  const positiveRateB =
+                    b.comments.filter(
+                      (comment) => comment.classification === "POSITIVE"
+                    ).length / b.comments.length;
+
+                  // Sort in ascending order based on positive comments rate
+                  return positiveRateA - positiveRateB;
+                })
+                .map((film) => (
+                  <Link
+                    key={film.id}
+                    to={`movie/${film.id}`}
+                    onClick={() => dispatch(fetchMovieDetail(film.id))}
+                  >
+                    <AlbumArtwork
+                      key={film.title}
+                      album={film}
+                      className="w-[250px]"
+                      aspectRatio="portrait"
+                      width={250}
+                      height={330}
+                      positive={
+                        film.comments.filter(
+                          (comment) => comment.classification === "POSITIVE"
+                        ).length
+                      }
+                      negative={
+                        film.comments.filter(
+                          (comment) => comment.classification === "NEGATIVE"
+                        ).length
+                      }
+                      neutral={
+                        film.comments.filter(
+                          (comment) => comment.classification === "NEUTRAL"
+                        ).length
+                      }
+                    />
+                  </Link>
+                ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* FAQ & Footer */}
       <div className="w-full flex flex-col gap-6 items-center">
@@ -184,8 +272,8 @@ function Home() {
                 Seberapa akurat klasifikasi yang diberikan?
               </AccordionTrigger>
               <AccordionContent>
-                Akurasi dari hasil klasifikasi komentar positif dan negatif
-                adalah 80%.
+                Akurasi dari hasil klasifikasi komentar positif, negatif, dan
+                netral adalah sekitar 70%.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">

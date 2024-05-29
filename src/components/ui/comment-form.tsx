@@ -9,6 +9,19 @@ import axios from "axios";
 import { Icons } from "./icons";
 
 import { Button } from "./button";
+import { cn } from "../../lib/utils";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "./command";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
   Form,
   FormControl,
@@ -33,6 +46,7 @@ import {
 } from "./select";
 import { fetchComments, selectMoviesList } from "../../stores/commentsSlice";
 import { useToken } from "../../hooks/useToken";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 
 const formSchema = z.object({
   comment: z.string(),
@@ -51,6 +65,7 @@ export function CommentForm() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const movies = useAppSelector(selectMoviesList);
   const { saveToken, token } = useToken();
+  const [open, setOpen] = React.useState(false);
 
   const [error, setError] = React.useState<string>("");
   const dispatch = useAppDispatch();
@@ -166,27 +181,55 @@ export function CommentForm() {
                 control={form.control}
                 name="movie"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col mt-2">
                     <FormLabel>Movie</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select the movie" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="dark">
-                        {movies.map((movie) => (
-                          <SelectItem value={movie.title} key={movie.id}>
-                            {movie.title}
-                          </SelectItem>
-                        ))}
-                        {/* <SelectItem value="Talk To Me">Talk To Me</SelectItem>
-                        <SelectItem value="Elementals">Elementals</SelectItem> */}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-label="Select movie"
+                            aria-expanded={open}
+                            className="flex-1 justify-between"
+                          >
+                            {field.value ? field.value : "Select movie"}
+                            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0 dark">
+                          <Command>
+                            <CommandInput placeholder="Cari film..." />
+                            <CommandEmpty>Film tidak ditemukan.</CommandEmpty>
+                            <ScrollArea className="rounded-md w-full h-[250px]">
+                              <CommandGroup>
+                                {movies.map((movie) => (
+                                  <CommandItem
+                                    key={movie.id}
+                                    value={movie.title}
+                                    onSelect={() => {
+                                      // setSelectedPreset(preset);
+                                      field.onChange(movie.title);
+                                      setOpen(false);
+                                    }}
+                                  >
+                                    {movie.title}
+                                    <CheckIcon
+                                      className={cn(
+                                        "ml-auto h-4 w-4",
+                                        field?.value === movie.title
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </ScrollArea>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

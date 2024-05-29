@@ -39,6 +39,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { CommentForm } from "../ui/comment-form";
+import { ScrappingForm } from "../ui/scrapping-form";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -92,6 +93,22 @@ export function DataTable<TData, TValue>({
               </SheetHeader>
               <div className="mt-8 text-secondary-foreground">
                 <CommentForm />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <Sheet>
+            <Button variant="default" asChild>
+              <SheetTrigger>Scrapping</SheetTrigger>
+            </Button>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Scrapping Data Komentar</SheetTitle>
+                <SheetDescription>
+                  Masukkan informasi trailer untuk mengambil komentarnya.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-8 text-secondary-foreground">
+                <ScrappingForm />
               </div>
             </SheetContent>
           </Sheet>

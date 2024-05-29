@@ -36,6 +36,7 @@ import {
   fetchStartClassification,
   selectMetrics,
   fetchMetrics,
+  emptyClassification,
 } from "../stores/commentsSlice";
 import { Button } from "../components/ui/button";
 import { Icons } from "../components/ui/icons";
@@ -60,6 +61,7 @@ function Classification() {
       setIsLoading(true);
       await dispatch(fetchStartClassification());
       dispatch(fetchDataClassifications());
+      dispatch(fetchMetrics());
     } catch (error) {
       console.error("Error in classificationHandler:", error);
     } finally {
@@ -75,7 +77,8 @@ function Classification() {
     try {
       setIsLoadingReset(true);
       await dispatch(resetClassification());
-      dispatch(fetchDataClassifications());
+      dispatch(emptyClassification());
+      // dispatch(fetchDataClassifications());
     } catch (error) {
       console.error("Error in resetHandler:", error);
     } finally {
@@ -98,11 +101,11 @@ function Classification() {
           break;
         case "classification":
           await dispatch(fetchDataClassifications());
+          await dispatch(fetchMetrics());
           break;
         default:
           break;
       }
-      await dispatch(fetchMetrics());
     };
 
     fetchData();
@@ -215,57 +218,34 @@ function Classification() {
         </TabsContent>
         <TabsContent value="classification">
           <DataTable columns={columnsClassification} data={classifications} />
+          <div className="text-secondary-foreground h-[400px] flex">
+            <ReactECharts option={option} theme="dark" />
+          </div>
+          <div className="col-span-1">
+            <Table>
+              <TableCaption>Performa Klasifikasi</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead></TableHead>
+                  <TableHead>Accuracy</TableHead>
+                  <TableHead>Precision</TableHead>
+                  <TableHead>Recall</TableHead>
+                  <TableHead>F-1 Score</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Hasil</TableCell>
+                  <TableCell>{metrics?.accuracy}</TableCell>
+                  <TableCell>{metrics?.precision}</TableCell>
+                  <TableCell>{metrics?.recall}</TableCell>
+                  <TableCell>{metrics?.f1_score}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </TabsContent>
       </Tabs>
-      <div className="text-secondary-foreground h-[400px] flex">
-        <ReactECharts option={option} theme="dark" />
-      </div>
-      <div className="col-span-1">
-        <Table>
-          <TableCaption>Confusion Matrix</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Accuracy</TableHead>
-              <TableHead>Precision</TableHead>
-              <TableHead>Recall</TableHead>
-              <TableHead>F-1 Score</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>Hasil</TableCell>
-              <TableCell>{metrics?.accuracy}</TableCell>
-              <TableCell>{metrics?.precision}</TableCell>
-              <TableCell>{metrics?.recall}</TableCell>
-              <TableCell>{metrics?.f1_score}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-        {/* Confusion Matrix Table */}
-        {/* <Table>
-          <TableCaption>Confusion Matrix</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead></TableHead>
-              <TableHead>Klasifikasi Positif</TableHead>
-              <TableHead>Klasifikasi Negatif</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>Aktual Positif</TableCell>
-              <TableCell>78%</TableCell>
-              <TableCell>78%</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Aktual Negatif</TableCell>
-              <TableCell>78%</TableCell>
-              <TableCell>78%</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table> */}
-      </div>
       <Toaster />
     </div>
   );

@@ -24,6 +24,7 @@ interface AlbumArtworkProps extends React.HTMLAttributes<HTMLDivElement> {
   positive?: number;
   negative?: number;
   neutral?: number;
+  recommended?: boolean;
 }
 
 export function AlbumArtwork({
@@ -35,6 +36,7 @@ export function AlbumArtwork({
   positive,
   negative,
   neutral,
+  recommended,
   ...props
 }: AlbumArtworkProps) {
   return (
@@ -42,6 +44,14 @@ export function AlbumArtwork({
       <ContextMenu>
         <ContextMenuTrigger>
           <div className="overflow-hidden rounded-md">
+            <div
+              className={cn(
+                "absolute z-10 flex flex-col px-2 py-1 bg-accent rounded-md mt-2 ml-2",
+                recommended ? "visible" : "invisible"
+              )}
+            >
+              <p className="text-xs">REKOMENDASI</p>
+            </div>
             <img
               src={album.cover}
               alt={album.title}

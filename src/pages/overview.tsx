@@ -193,9 +193,12 @@ function Overview() {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics?.accuracy}</div>
+              <div className="text-2xl font-bold">
+                {metrics?.accuracy ? metrics?.accuracy : "∅"}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Precision: {metrics?.precision} | Recall: {metrics?.recall}
+                Precision: {metrics?.precision ? metrics?.precision : "∅"} |
+                Recall: {metrics?.recall ? metrics?.recall : "∅"}
               </p>
             </CardContent>
           </Card>
